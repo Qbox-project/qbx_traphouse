@@ -4,7 +4,7 @@ local QBCore = exports['qb-core']:GetCoreObject()
 local function HasCitizenIdHasKey(CitizenId, Traphouse)
     local retval = false
 
-    if Config.TrapHouses[Traphouse].keyholders ~= nil and next(Config.TrapHouses[Traphouse].keyholders) ~= nil then
+    if Config.TrapHouses[Traphouse].keyholders and next(Config.TrapHouses[Traphouse].keyholders) then
         for _, data in pairs(Config.TrapHouses[Traphouse].keyholders) do
             if data.citizenid == CitizenId then
                 retval = true
@@ -36,7 +36,7 @@ local function SellTimeout(traphouseId, slot, itemName, amount, info)
     CreateThread(function()
         if itemName == "markedbills" then
             SetTimeout(math.random(1000, 5000), function()
-                if Config.TrapHouses[traphouseId].inventory[slot] ~= nil then
+                if Config.TrapHouses[traphouseId].inventory[slot] then
                     RemoveHouseItem(traphouseId, slot, itemName, 1)
 
                     Config.TrapHouses[traphouseId].money = Config.TrapHouses[traphouseId].money + math.ceil(info.worth / 100 * 80)
@@ -49,7 +49,7 @@ local function SellTimeout(traphouseId, slot, itemName, amount, info)
                 local SellData = Config.AllowedItems[itemName]
 
                 SetTimeout(SellData.wait, function()
-                    if Config.TrapHouses[traphouseId].inventory[slot] ~= nil then
+                    if Config.TrapHouses[traphouseId].inventory[slot] then
                         RemoveHouseItem(traphouseId, slot, itemName, 1)
 
                         Config.TrapHouses[traphouseId].money = Config.TrapHouses[traphouseId].money + SellData.reward
@@ -70,7 +70,7 @@ local function AddHouseItem(traphouseId, slot, itemName, amount, info, _)
     amount = tonumber(amount)
     traphouseId = tonumber(traphouseId)
 
-    if Config.TrapHouses[traphouseId].inventory[slot] ~= nil and Config.TrapHouses[traphouseId].inventory[slot].name == itemName then
+    if Config.TrapHouses[traphouseId].inventory[slot] and Config.TrapHouses[traphouseId].inventory[slot].name == itemName then
         Config.TrapHouses[traphouseId].inventory[slot].amount = Config.TrapHouses[traphouseId].inventory[slot].amount + amount
     else
         local itemInfo = QBCore.Shared.Items[itemName:lower()]
@@ -78,9 +78,9 @@ local function AddHouseItem(traphouseId, slot, itemName, amount, info, _)
         Config.TrapHouses[traphouseId].inventory[slot] = {
             name = itemInfo.name,
             amount = amount,
-            info = info ~= nil and info or "",
+            info = info or "",
             label = itemInfo.label,
-            description = itemInfo.description ~= nil and itemInfo.description or "",
+            description = itemInfo.description or "",
             weight = itemInfo.weight,
             type = itemInfo.type,
             unique = itemInfo.unique,
@@ -100,20 +100,20 @@ local function RemoveHouseItem(traphouseId, slot, itemName, amount)
 	amount = tonumber(amount)
     traphouseId = tonumber(traphouseId)
 
-	if Config.TrapHouses[traphouseId].inventory[slot] ~= nil and Config.TrapHouses[traphouseId].inventory[slot].name == itemName then
+	if Config.TrapHouses[traphouseId].inventory[slot] and Config.TrapHouses[traphouseId].inventory[slot].name == itemName then
 		if Config.TrapHouses[traphouseId].inventory[slot].amount > amount then
 			Config.TrapHouses[traphouseId].inventory[slot].amount = Config.TrapHouses[traphouseId].inventory[slot].amount - amount
 		else
 			Config.TrapHouses[traphouseId].inventory[slot] = nil
 
-			if next(Config.TrapHouses[traphouseId].inventory) == nil then
+			if not next(Config.TrapHouses[traphouseId].inventory) then
 				Config.TrapHouses[traphouseId].inventory = {}
 			end
 		end
 	else
 		Config.TrapHouses[traphouseId].inventory[slot] = nil
 
-		if Config.TrapHouses[traphouseId].inventory == nil then
+		if not Config.TrapHouses[traphouseId].inventory then
 			Config.TrapHouses[traphouseId].inventory[slot] = nil
 		end
 	end
@@ -125,7 +125,7 @@ exports("RemoveHouseItem", RemoveHouseItem)
 local function GetInventoryData(traphouse, slot)
     traphouse = tonumber(traphouse)
 
-    if Config.TrapHouses[traphouse].inventory[slot] ~= nil then
+    if Config.TrapHouses[traphouse].inventory[slot] then
         return Config.TrapHouses[traphouse].inventory[slot]
     else
         return nil
@@ -136,7 +136,7 @@ exports("GetInventoryData", GetInventoryData)
 local function CanItemBeSaled(item)
     local retval = false
 
-    if Config.AllowedItems[item] ~= nil then
+    if Config.AllowedItems[item] then
         retval = true
     elseif item == "markedbills" then
         retval = true
@@ -164,13 +164,13 @@ end)
 RegisterNetEvent('qb-traphouse:server:AddHouseKeyHolder', function(CitizenId, TraphouseId, IsOwner)
     local src = source
 
-    if Config.TrapHouses[TraphouseId] ~= nil then
+    if Config.TrapHouses[TraphouseId] then
         if IsOwner then
             Config.TrapHouses[TraphouseId].keyholders = {}
             Config.TrapHouses[TraphouseId].pincode = math.random(1111, 4444)
         end
 
-        if Config.TrapHouses[TraphouseId].keyholders == nil then
+        if not Config.TrapHouses[TraphouseId].keyholders then
             Config.TrapHouses[TraphouseId].keyholders[#Config.TrapHouses[TraphouseId].keyholders + 1] = {
                 citizenid = CitizenId,
                 owner = IsOwner
@@ -239,16 +239,16 @@ QBCore.Commands.Add("multikeys", Lang:t("info.give_keys"), {
     local IsOwner = false
     local Traphouse = HasTraphouseAndOwner(Player.PlayerData.citizenid)
 
-    if TargetData ~= nil then
-        if Traphouse ~= nil then
+    if TargetData then
+        if Traphouse then
             if not HasCitizenIdHasKey(TargetData.PlayerData.citizenid, Traphouse) then
-                if Config.TrapHouses[Traphouse] ~= nil then
+                if Config.TrapHouses[Traphouse] then
                     if IsOwner then
                         Config.TrapHouses[Traphouse].keyholders = {}
                         Config.TrapHouses[Traphouse].pincode = math.random(1111, 4444)
                     end
 
-                    if Config.TrapHouses[Traphouse].keyholders == nil then
+                    if not Config.TrapHouses[Traphouse].keyholders then
                         Config.TrapHouses[Traphouse].keyholders[#Config.TrapHouses[Traphouse].keyholders + 1] = {
                             citizenid = TargetData.PlayerData.citizenid,
                             owner = IsOwner,

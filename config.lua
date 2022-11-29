@@ -5,6 +5,7 @@ Config.UseTarget = GetConvar('UseTarget', 'false') == 'true'
 
 Config.MinZOffset = 40
 Config.TakeoverPrice = 5000
+
 Config.TrapHouses = {
     [1] = {
         coords = {
@@ -14,27 +15,16 @@ Config.TrapHouses = {
         boxData = {
             ["enter"] = {
                 heading = 290,
-                minZ = 4.0,
-                maxZ = 6.0,
-                debug = false,
-                length = 1,
-                width = 1,
                 distance = 2.0,
                 created = false
             },
             ["interaction"] = {
                 heading = 180,
-                debug = false,
-                length = 1,
-                width = 1,
                 distance = 1.0,
                 created = false
             },
             ["exit"] = {
                 heading = 180,
-                debug = false,
-                length = 1,
-                width = 1,
                 distance = 1.0,
                 created = false
             }

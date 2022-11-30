@@ -12,10 +12,7 @@ shared_scripts {
 }
 
 client_scripts {
-    'client/*.lua',
-    '@PolyZone/client.lua',
-	'@PolyZone/BoxZone.lua',
-	'@PolyZone/CircleZone.lua'
+    'client/*.lua'
 }
 
 server_script 'server/*.lua'

@@ -44,25 +44,22 @@ end
 
 local function RegisterTraphouseEntranceZone(traphouseID, traphouseData)
     local coords = traphouseData.coords['enter']
-    local boxName = 'traphouseEntrance' .. traphouseID
     local boxData = traphouseData.boxData['enter']
-    local zone = BoxZone:Create(coords, boxData.length, boxData.width, {
-        name = boxName,
-        heading = boxData.heading,
-        debugPoly = boxData.debug,
-        minZ = boxData.minZ,
-        maxZ = boxData.maxZ
-    })
+    local zone = lib.zones.box({
+        coords = coords,
+        size = vec3(2, 2, 2),
+        rotation = heading,
+        onEnter = function(_)
+            isInsideEntranceTarget = true
 
-    zone:onPlayerInOut(function(isPointInside)
-        if isPointInside then
             lib.showTextUI('[E] - ' .. Lang:t('targetInfo.enter'), 'left')
-        else
+        end,
+        onExit = function(_)
+            isInsideEntranceTarget = false
+
             lib.hideTextUI()
         end
-
-        isInsideEntranceTarget = isPointInside
-    end)
+    })
 
     boxData.created = true
     boxData.zone = zone
@@ -84,26 +81,23 @@ end
 
 local function RegisterTraphouseInteractionZone(traphouseID, traphouseData)
     local coords = traphouseData.coords['interaction']
-    local boxName = 'traphouseInteraction' .. traphouseID
     local boxData = traphouseData.boxData['interaction']
-    local zone = BoxZone:Create(coords, boxData.length, boxData.width, {
-        name = boxName,
-        heading = boxData.heading,
-        debugPoly = boxData.debug,
-        minZ = coords.z - 1.0,
-        maxZ = coords.z + 1.0
-    })
+    local zone = lib.zones.box({
+        coords = coords,
+        size = vec3(2, 2, 2),
+        rotation = heading,
+        onEnter = function(_)
+            isInsideInteractionTarget = true
 
-    zone:onPlayerInOut(function(isPointInside)
-        if isPointInside then
             lib.showTextUI('[E] - ' .. Lang:t('targetInfo.options'), 'left')
-        else
+        end,
+        onExit = function(_)
+            isInsideInteractionTarget = false
+
             lib.hideTextUI()
             lib.hideContext()
         end
-
-        isInsideInteractionTarget = isPointInside
-    end)
+    })
 
     boxData.created = true
     boxData.zone = zone
@@ -165,25 +159,22 @@ local function RegisterTraphouseInteractionTarget(traphouseID, traphouseData)
 end
 
 local function RegisterTraphouseExitZone(coords, traphouseID, traphouseData)
-    local boxName = 'traphouseExit' .. traphouseID
     local boxData = traphouseData.boxData['exit']
-    local zone = BoxZone:Create(coords, boxData.length, boxData.width, {
-        name = boxName,
-        heading = boxData.heading,
-        debugPoly = boxData.debug,
-        minZ = coords.z - 1.0,
-        maxZ = coords.z + 1.0
-    })
+    local zone = lib.zones.box({
+        coords = coords,
+        size = vec3(2, 2, 2),
+        rotation = heading,
+        onEnter = function(_)
+            isInsideExitTarget = true
 
-    zone:onPlayerInOut(function(isPointInside)
-        if isPointInside then
             lib.showTextUI('[E] - ' .. Lang:t("targetInfo.leave"), 'left')
-        else
+        end,
+        onExit = function(_)
+            isInsideExitTarget = false
+
             lib.hideTextUI()
         end
-
-        isInsideExitTarget = isPointInside
-    end)
+    })
 
     boxData.created = true
     boxData.zone = zone

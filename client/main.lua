@@ -15,16 +15,16 @@ local RobbingTime = 3
 local isInsideEntranceTarget = false
 local isInsideExitTarget = false
 local isInsideInteractionTarget = false
-
 local traphouseInteraction = nil
 local traphouseExit = nil
+local traphouseEntranceTarget = nil
 
 -- Functions
 local function RegisterTraphouseEntranceTarget(traphouseID, traphouseData)
     local coords = traphouseData.coords['enter']
     local boxData = traphouseData.boxData['enter']
 
-    exports.ox_target:addBoxZone({
+    traphouseEntranceTarget = exports.ox_target:addBoxZone({
         coords = coords,
         size = vec3(2, 2, 2),
         rotation = boxData.heading,
@@ -42,13 +42,13 @@ local function RegisterTraphouseEntranceTarget(traphouseID, traphouseData)
     Config.TrapHouses[traphouseID].boxData['enter'].created = true
 end
 
-local function RegisterTraphouseEntranceZone(traphouseID, traphouseData)
+local function RegisterTraphouseEntranceZone(traphouseData)
     local coords = traphouseData.coords['enter']
     local boxData = traphouseData.boxData['enter']
     local zone = lib.zones.box({
         coords = coords,
         size = vec3(2, 2, 2),
-        rotation = heading,
+        rotation = boxData.heading,
         onEnter = function(_)
             isInsideEntranceTarget = true
 
@@ -72,20 +72,20 @@ local function SetTraphouseEntranceTargets()
                 if Config.UseTarget then
                     RegisterTraphouseEntranceTarget(id, traphouse)
                 else
-                    RegisterTraphouseEntranceZone(id, traphouse)
+                    RegisterTraphouseEntranceZone(traphouse)
                 end
             end
         end
     end
 end
 
-local function RegisterTraphouseInteractionZone(traphouseID, traphouseData)
+local function RegisterTraphouseInteractionZone(traphouseData)
     local coords = traphouseData.coords['interaction']
     local boxData = traphouseData.boxData['interaction']
     local zone = lib.zones.box({
         coords = coords,
         size = vec3(2, 2, 2),
-        rotation = heading,
+        rotation = boxData.heading,
         onEnter = function(_)
             isInsideInteractionTarget = true
 
@@ -103,7 +103,7 @@ local function RegisterTraphouseInteractionZone(traphouseID, traphouseData)
     boxData.zone = zone
 end
 
-local function RegisterTraphouseInteractionTarget(traphouseID, traphouseData)
+local function RegisterTraphouseInteractionTarget(traphouseData)
     local coords = traphouseData.coords['interaction']
     local boxData = traphouseData.boxData['interaction']
     local options = {
@@ -158,12 +158,12 @@ local function RegisterTraphouseInteractionTarget(traphouseID, traphouseData)
     boxData.created = true
 end
 
-local function RegisterTraphouseExitZone(coords, traphouseID, traphouseData)
+local function RegisterTraphouseExitZone(coords, traphouseData)
     local boxData = traphouseData.boxData['exit']
     local zone = lib.zones.box({
         coords = coords,
         size = vec3(2, 2, 2),
-        rotation = heading,
+        rotation = boxData.heading,
         onEnter = function(_)
             isInsideExitTarget = true
 
@@ -290,14 +290,14 @@ local function SetClosestTraphouse()
     local current = nil
     local dist = nil
 
-    for id, _ in pairs(Config.TrapHouses) do
+    for id, data in pairs(Config.TrapHouses) do
         if current then
-            if #(pos - Config.TrapHouses[id].coords.enter) < dist then
+            if #(pos - data.coords.enter) < dist then
                 current = id
-                dist = #(pos - Config.TrapHouses[id].coords.enter)
+                dist = #(pos - data.coords.enter)
             end
         else
-            dist = #(pos - Config.TrapHouses[id].coords.enter)
+            dist = #(pos - data.coords.enter)
             current = id
         end
     end
@@ -452,7 +452,7 @@ RegisterNetEvent('qb-traphouse:client:SyncData', function(k, data)
     IsHouseOwner = IsOwner(PlayerData.citizenid)
 
     if Config.UseTarget then
-        exports.ox_target:removeZone(EntityZones[i])
+        exports.ox_target:removeZone(traphouseEntranceTarget)
 
         Config.TrapHouses[k].boxData['interaction'].created = false
     else
@@ -624,15 +624,15 @@ CreateThread(function()
                     if Config.UseTarget then
                         RegisterTraphouseExitTarget(exitCoords, CurrentTraphouse, data)
                     else
-                        RegisterTraphouseExitZone(exitCoords, CurrentTraphouse, data)
+                        RegisterTraphouseExitZone(exitCoords, data)
                     end
                 end
 
                 if not data.boxData['interaction'].created then
                     if Config.UseTarget then
-                        RegisterTraphouseInteractionTarget(CurrentTraphouse, data)
+                        RegisterTraphouseInteractionTarget(data)
                     else
-                        RegisterTraphouseInteractionZone(CurrentTraphouse, data)
+                        RegisterTraphouseInteractionZone(data)
                     end
                 end
 

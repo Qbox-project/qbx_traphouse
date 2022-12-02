@@ -96,27 +96,27 @@ local function AddHouseItem(traphouseId, slot, itemName, amount, info, _)
 end
 exports("AddHouseItem", AddHouseItem)
 
-local function RemoveHouseItem(traphouseId, slot, itemName, amount)
-	amount = tonumber(amount)
+function RemoveHouseItem(traphouseId, slot, itemName, amount)
+    amount = tonumber(amount)
     traphouseId = tonumber(traphouseId)
 
-	if Config.TrapHouses[traphouseId].inventory[slot] and Config.TrapHouses[traphouseId].inventory[slot].name == itemName then
-		if Config.TrapHouses[traphouseId].inventory[slot].amount > amount then
-			Config.TrapHouses[traphouseId].inventory[slot].amount = Config.TrapHouses[traphouseId].inventory[slot].amount - amount
-		else
-			Config.TrapHouses[traphouseId].inventory[slot] = nil
+    if Config.TrapHouses[traphouseId].inventory[slot] and Config.TrapHouses[traphouseId].inventory[slot].name == itemName then
+        if Config.TrapHouses[traphouseId].inventory[slot].amount > amount then
+            Config.TrapHouses[traphouseId].inventory[slot].amount = Config.TrapHouses[traphouseId].inventory[slot].amount - amount
+        else
+            Config.TrapHouses[traphouseId].inventory[slot] = nil
 
-			if not next(Config.TrapHouses[traphouseId].inventory) then
-				Config.TrapHouses[traphouseId].inventory = {}
-			end
-		end
-	else
-		Config.TrapHouses[traphouseId].inventory[slot] = nil
+            if not next(Config.TrapHouses[traphouseId].inventory) then
+                Config.TrapHouses[traphouseId].inventory = {}
+            end
+        end
+    else
+        Config.TrapHouses[traphouseId].inventory[slot] = nil
 
-		if not Config.TrapHouses[traphouseId].inventory then
-			Config.TrapHouses[traphouseId].inventory[slot] = nil
-		end
-	end
+        if not Config.TrapHouses[traphouseId].inventory then
+            Config.TrapHouses[traphouseId].inventory[slot] = nil
+        end
+    end
 
     TriggerClientEvent('qb-traphouse:client:SyncData', -1, traphouseId, Config.TrapHouses[traphouseId])
 end

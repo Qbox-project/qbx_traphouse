@@ -32,7 +32,7 @@ local function RegisterTraphouseEntranceTarget(traphouseID, traphouseData)
             {
                 name = 'qb-traphouse:entrance',
                 event = 'qb-traphouse:client:EnterTraphouse',
-                icon = 'fa-solid fa-cube',
+                icon = "fa-solid fa-door-open",
                 label = Lang:t('targetInfo.enter'),
                 distance = boxData.distance
             }
@@ -118,6 +118,7 @@ local function RegisterTraphouseInteractionTarget(traphouseData)
         options = {
             {
                 name = 'qb-traphouse:viewInventory',
+                icon = "fa-solid fa-box-open",
                 label = Lang:t("targetInfo.inventory"),
                 distance = boxData.distance,
                 onSelect = function(data)
@@ -127,6 +128,7 @@ local function RegisterTraphouseInteractionTarget(traphouseData)
             },
             {
                 name = 'qb-traphouse:takeMoney',
+                icon = "fa-solid fa-money-bill",
                 event = "qb-traphouse:client:target:TakeMoney",
                 label = Lang:t('targetInfo.take_cash', {
                     value = traphouseData.money
@@ -138,6 +140,7 @@ local function RegisterTraphouseInteractionTarget(traphouseData)
         if IsHouseOwner then
             options[#options + 1] = {
                 name = 'qb-traphouse:pinCode',
+                icon = "fa-solid fa-key",
                 label = Lang:t("targetInfo.pin_code_see"),
                 distance = boxData.distance,
                 onSelect = function(data)
@@ -190,7 +193,7 @@ local function RegisterTraphouseExitTarget(coords, traphouseID, traphouseData)
         options = {
             {
                 name = 'qb-traphouse:exit',
-                icon = 'fa-solid fa-cube',
+                icon = "fa-solid fa-door-open",
                 distance = boxData.distance,
                 label = Lang:t("targetInfo.leave"),
                 onSelect = function(_)
@@ -400,19 +403,24 @@ RegisterNetEvent('qb-traphouse:client:EnterTraphouse', function()
 end)
 
 RegisterNetEvent('qb-traphouse:client:TakeoverHouse', function(TraphouseId)
-    QBCore.Functions.Progressbar("takeover_traphouse", Lang:t("info.taking_over"), math.random(1000, 3000), false, true, {
-        disableMovement = true,
-        disableCarMovement = true,
-        disableMouse = false,
-        disableCombat = true
-    }, {}, {}, {}, function() -- Done
+    if lib.progressBar({
+        duration = math.random(1000, 3000),
+        label = Lang:t("info.taking_over"),
+        useWhileDead = false,
+        canCancel = true,
+        disable = {
+            move = true,
+            car = true,
+            combat = true
+        }
+    }) then
         TriggerServerEvent('qb-traphouse:server:AddHouseKeyHolder', PlayerData.citizenid, TraphouseId, true)
-    end, function()
+    else
         lib.notify({
             description = Lang:t("error.cancelled"),
             type = 'error'
         })
-    end)
+    end
 end)
 
 RegisterNetEvent('qb-traphouse:client:target:ViewInventory', function(data)
@@ -507,7 +515,7 @@ CreateThread(function()
 
             if ClosestTraphouse then
                 local data = Config.TrapHouses[ClosestTraphouse]
-                local dist = #(pos - data.coords["enter"])
+                local dist = #(pos - data.coords.enter)
 
                 if dist < 200 then
                     if aiming then
@@ -619,7 +627,7 @@ CreateThread(function()
                 local data = Config.TrapHouses[ClosestTraphouse]
 
                 if not data.boxData['exit'].created then
-                    local exitCoords = vec3(data.coords["enter"].x + POIOffsets.exit.x, data.coords["enter"].y + POIOffsets.exit.y, data.coords["enter"].z - Config.MinZOffset + POIOffsets.exit.z)
+                    local exitCoords = vec3(data.coords.enter.x + POIOffsets.exit.x, data.coords.enter.y + POIOffsets.exit.y, data.coords.enter.z - Config.MinZOffset + POIOffsets.exit.z)
 
                     if Config.UseTarget then
                         RegisterTraphouseExitTarget(exitCoords, CurrentTraphouse, data)

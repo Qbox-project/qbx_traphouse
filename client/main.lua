@@ -1,4 +1,4 @@
-local QBCore = exports['qb-core']:GetCoreObject()
+local QBCore = exports['qbx-core']:GetCoreObject()
 local PlayerData = {}
 local ClosestTraphouse = nil
 local InsideTraphouse = false
@@ -57,9 +57,9 @@ local function RegisterTraphouseEntranceZone(traphouseID, traphouseData)
 
     zone:onPlayerInOut(function (isPointInside)
         if isPointInside then
-            exports['qb-core']:DrawText('[E] ' .. Lang:t('targetInfo.enter'), 'left')
+            exports['qbx-core']:DrawText('[E] ' .. Lang:t('targetInfo.enter'), 'left')
         else
-            exports['qb-core']:HideText()
+            exports['qbx-core']:HideText()
         end
 
         isInsideEntranceTarget = isPointInside
@@ -98,9 +98,9 @@ local function RegisterTraphouseInteractionZone(traphouseID, traphouseData)
 
     zone:onPlayerInOut(function (isPointInside)
         if isPointInside then
-            exports['qb-core']:DrawText('[E] ' .. Lang:t('targetInfo.options'), 'left')
+            exports['qbx-core']:DrawText('[E] ' .. Lang:t('targetInfo.options'), 'left')
         else
-            exports['qb-core']:HideText()
+            exports['qbx-core']:HideText()
             TriggerEvent('qb-traphouse:client:target:CloseMenu')
         end
 
@@ -174,9 +174,9 @@ local function RegisterTraphouseExitZone(coords, traphouseID, traphouseData)
 
     zone:onPlayerInOut(function (isPointInside)
         if isPointInside then
-            exports['qb-core']:DrawText('[E] ' .. Lang:t("targetInfo.leave"), 'left')
+            exports['qbx-core']:DrawText('[E] ' .. Lang:t("targetInfo.leave"), 'left')
         else
-            exports['qb-core']:HideText()
+            exports['qbx-core']:HideText()
         end
 
         isInsideExitTarget = isPointInside
@@ -318,7 +318,7 @@ end
 local function EnterTraphouse(data)
     local coords = { x = data.coords["enter"].x, y = data.coords["enter"].y, z= data.coords["enter"].z - Config.MinZOffset}
     TriggerServerEvent("InteractSound_SV:PlayOnSource", "houses_door_open", 0.25)
-    data = exports['qb-interior']:CreateTrevorsShell(coords)
+    data = exports['qbx-interior']:CreateTrevorsShell(coords)
     TraphouseObj = data[1]
     POIOffsets = data[2]
     CurrentTraphouse = ClosestTraphouse
@@ -332,7 +332,7 @@ local function LeaveTraphouse(k, data)
     TriggerServerEvent("InteractSound_SV:PlayOnSource", "houses_door_open", 0.25)
     DoScreenFadeOut(250)
     Wait(250)
-    exports['qb-interior']:DespawnInterior(TraphouseObj, function()
+    exports['qbx-interior']:DespawnInterior(TraphouseObj, function()
         TriggerEvent('qb-weathersync:client:EnableSync')
         DoScreenFadeIn(250)
         SetEntityCoords(ped, data.coords["enter"].x, data.coords["enter"].y, data.coords["enter"].z + 0.5)
@@ -574,7 +574,7 @@ CreateThread(function ()
                     wait = 0
                     if IsControlJustPressed(0, 38) then
                         TriggerEvent("qb-traphouse:client:EnterTraphouse")
-                        exports['qb-core']:HideText()
+                        exports['qbx-core']:HideText()
                     end
                 end
             else
@@ -600,7 +600,7 @@ CreateThread(function ()
                     wait = 0
                     if IsControlJustPressed(0, 38) then
                         LeaveTraphouse(ClosestTraphouse, data)
-                        exports['qb-core']:HideText()
+                        exports['qbx-core']:HideText()
                     end
                 end
 
@@ -608,7 +608,7 @@ CreateThread(function ()
                     wait = 0
                     if IsControlJustPressed(0, 38) then
                         OpenHeaderMenu(data)
-                        exports['qb-core']:HideText()
+                        exports['qbx-core']:HideText()
                     end
                 end
             end

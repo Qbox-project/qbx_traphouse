@@ -209,58 +209,49 @@ local function RegisterTraphouseExitTarget(coords, traphouseID, traphouseData)
 end
 
 local function OpenHeaderMenu(data)
-    local headerMenu = {}
-
-    headerMenu[#headerMenu+1] = {
-        header = Lang:t("targetInfo.options"),
-        isMenuHeader = true
-    }
-
-    if IsKeyHolder then
-        headerMenu[#headerMenu+1] = {
-            header = Lang:t("targetInfo.inventory"),
-            params = {
-                event = "qb-traphouse:client:target:ViewInventory",
+    
+    lib.registerContext({
+        id = 'traphouse',
+        title = 'Options',  -- Derived from the first option's header value
+        options = {
+            {
+                title = Lang:t("targetInfo.inventory"),
+                icon = 'fa-boxes-stacked',
+                event = 'qb-traphouse:client:target:ViewInventory',
+                arrow = true,
                 args = {
                     traphouseData = data
+          }},
+          {
+            title = Lang:t('targetInfo.take_cash', {value = data.money}),
+            icon = 'fa-sack-dollar',
+            event = 'qb-traphouse:client:target:TakeMoney',
+            arrow = true,
+            },
+            {
+                title = Lang:t("targetInfo.pin_code_see"),
+                icon = 'fa-key',
+                event = "qb-traphouse:client:target:SeePinCode",
+                arrow = true,
+                args = {
+                    traphouseData = data
+          }},
+            {
+            title = Lang:t("targetInfo.take_over"),
+            icon = 'fa-skull',
+            event = "qb-traphouse:client:target:TakeOver",
+            arrow = true,
+            },
+            {
+                title = Lang:t("targetInfo.close_menu"),
+                icon = 'fa-circle',
+                event = "qb-traphouse:client:target:CloseMenu",
+                arrow = false,
                 }
-            }
         }
-        headerMenu[#headerMenu+1] = {
-            header = Lang:t('targetInfo.take_cash', {value = data.money}),
-            params = {
-                event = "qb-traphouse:client:target:TakeMoney"
-            }
-        }
+    })  
+    lib.showContext("traphouse")
 
-        if IsHouseOwner then
-            headerMenu[#headerMenu+1] = {
-                header = Lang:t("targetInfo.pin_code_see"),
-                params = {
-                    event = "qb-traphouse:client:target:SeePinCode",
-                    args = {
-                        traphouseData = data
-                    }
-                }
-            }
-        end
-    else
-        headerMenu[#headerMenu+1] = {
-            header = Lang:t("targetInfo.take_over"),
-            params = {
-                event = "qb-traphouse:client:target:TakeOver",
-            }
-        }
-    end
-
-    headerMenu[#headerMenu+1] = {
-        header = Lang:t("targetInfo.close_menu"),
-        params = {
-            event = "qb-traphouse:client:target:CloseMenu",
-        }
-    }
-
-    exports['qb-menu']:openMenu(headerMenu)
 end
 
 local function HasKey(CitizenId)

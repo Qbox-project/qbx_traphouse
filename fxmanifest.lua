@@ -16,6 +16,7 @@ client_script {
     '@PolyZone/client.lua',
 	'@PolyZone/BoxZone.lua',
 	'@PolyZone/CircleZone.lua',
+	'@ox_lib/init.lua'
 }
 
 server_script 'server/*.lua'

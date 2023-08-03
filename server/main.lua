@@ -30,98 +30,59 @@ local function HasTraphouseAndOwner(CitizenId)
     return retval
 end
 
-local function SellTimeout(traphouseId, slot, itemName, amount, info)
-    Citizen.CreateThread(function()
-        if itemName == "markedbills" then
-            SetTimeout(math.random(1000, 5000), function()
-                if Config.TrapHouses[traphouseId].inventory[slot] ~= nil then
-                    RemoveHouseItem(traphouseId, slot, itemName, 1)
-                    Config.TrapHouses[traphouseId].money = Config.TrapHouses[traphouseId].money + math.ceil(info.worth / 100 * 80)
-                    TriggerClientEvent('qb-traphouse:client:SyncData', -1, traphouseId, Config.TrapHouses[traphouseId])
-                end
-            end)
-        else
-            for _ = 1, amount, 1 do
-                local SellData = Config.AllowedItems[itemName]
-                SetTimeout(SellData.wait, function()
-                    if Config.TrapHouses[traphouseId].inventory[slot] ~= nil then
-                        RemoveHouseItem(traphouseId, slot, itemName, 1)
-                        Config.TrapHouses[traphouseId].money = Config.TrapHouses[traphouseId].money + SellData.reward
-                        TriggerClientEvent('qb-traphouse:client:SyncData', -1, traphouseId, Config.TrapHouses[traphouseId])
-                    end
-                end)
-                if amount > 1 then
-                    Citizen.Wait(SellData.wait)
+local function HasTraphouseAndOwner(CitizenId)
+    local retval = nil
+    for Traphouse,_ in pairs(Config.TrapHouses) do
+        for _, v in pairs(Config.TrapHouses[Traphouse].keyholders) do
+            if v.citizenid == CitizenId then
+                if v.owner then
+                    retval = Traphouse
                 end
             end
+        end
+    end
+    return retval
+end
+
+--Creating stash for each traphouse 
+for i, trapHouse in pairs(Config.TrapHouses) do
+    local stashName = trapHouse.inventory -- Generate a unique stash name for each trap house
+    
+    -- Create the inventory stash
+    local stash = {
+        id = stashName,
+        label = 'Trap House',
+        slots = 2,
+        weight = 100000,
+    }
+     
+    AddEventHandler('onServerResourceStart', function(resourceName)
+        if resourceName == 'ox_inventory' or resourceName == GetCurrentResourceName() then
+            exports.ox_inventory:RegisterStash(stash.id, stash.label, stash.slots, stash.weight)
         end
     end)
 end
 
-function AddHouseItem(traphouseId, slot, itemName, amount, info, _)
-    amount = tonumber(amount)
-    traphouseId = tonumber(traphouseId)
-    if Config.TrapHouses[traphouseId].inventory[slot] ~= nil and Config.TrapHouses[traphouseId].inventory[slot].name == itemName then
-        Config.TrapHouses[traphouseId].inventory[slot].amount = Config.TrapHouses[traphouseId].inventory[slot].amount + amount
-    else
-        local itemInfo = QBCore.Shared.Items[itemName:lower()]
-        Config.TrapHouses[traphouseId].inventory[slot] = {
-            name = itemInfo["name"],
-            amount = amount,
-            info = info ~= nil and info or "",
-            label = itemInfo["label"],
-            description = itemInfo["description"] ~= nil and itemInfo["description"] or "",
-            weight = itemInfo["weight"],
-            type = itemInfo["type"],
-            unique = itemInfo["unique"],
-            useable = itemInfo["useable"],
-            image = itemInfo["image"],
-            slot = slot,
-        }
+local function ProcessTrapHouses()
+    for i = 1, #Config.TrapHouses do
+        local trapHouse = Config.TrapHouses[i]
+        local stashName = trapHouse.inventory --getting StashName from Config 
+        for itemName, itemData in pairs(Config.AllowedItems) do
+            local count = exports.ox_inventory:GetItemCount(stashName, itemName) --Checking Wheather Config.AllowedItems is present in the inventory 
+            if count >= 1 then
+                exports.ox_inventory:RemoveItem(stashName, itemName, count)
+                trapHouse.money = trapHouse.money + (itemData.reward * count) -- Adding money to the trapHouse
+                TriggerClientEvent('qb-traphouse:client:SyncData', -1, i, trapHouse)
+            end
+        end
     end
-    SellTimeout(traphouseId, slot, itemName, amount, info)
-    TriggerClientEvent('qb-traphouse:client:SyncData', -1, traphouseId, Config.TrapHouses[traphouseId])
+
+    -- Call the function again after configured time
+    SetTimeout(60000*Config.Sellingtime, ProcessTrapHouses)
 end
 
-function RemoveHouseItem(traphouseId, slot, itemName, amount)
-	amount = tonumber(amount)
-    traphouseId = tonumber(traphouseId)
-	if Config.TrapHouses[traphouseId].inventory[slot] ~= nil and Config.TrapHouses[traphouseId].inventory[slot].name == itemName then
-		if Config.TrapHouses[traphouseId].inventory[slot].amount > amount then
-			Config.TrapHouses[traphouseId].inventory[slot].amount = Config.TrapHouses[traphouseId].inventory[slot].amount - amount
-		else
-			Config.TrapHouses[traphouseId].inventory[slot] = nil
-			if next(Config.TrapHouses[traphouseId].inventory) == nil then
-				Config.TrapHouses[traphouseId].inventory = {}
-			end
-		end
-	else
-		Config.TrapHouses[traphouseId].inventory[slot] = nil
-		if Config.TrapHouses[traphouseId].inventory == nil then
-			Config.TrapHouses[traphouseId].inventory[slot] = nil
-		end
-	end
-    TriggerClientEvent('qb-traphouse:client:SyncData', -1, traphouseId, Config.TrapHouses[traphouseId])
-end
-
-function GetInventoryData(traphouse, slot)
-    traphouse = tonumber(traphouse)
-    if Config.TrapHouses[traphouse].inventory[slot] ~= nil then
-        return Config.TrapHouses[traphouse].inventory[slot]
-    else
-        return nil
-    end
-end
-
-function CanItemBeSaled(item)
-    local retval = false
-    if Config.AllowedItems[item] ~= nil then
-        retval = true
-    elseif item == "markedbills" then
-        retval = true
-    end
-    return retval
-end
+-- Start the loop by calling the function initially
+ProcessTrapHouses()
 
 -- events
 

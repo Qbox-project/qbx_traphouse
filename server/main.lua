@@ -45,23 +45,21 @@ local function HasTraphouseAndOwner(CitizenId)
 end
 
 --Creating stash for each traphouse 
-for i, trapHouse in pairs(Config.TrapHouses) do
-    local stashName = trapHouse.inventory -- Generate a unique stash name for each trap house
-    
-    -- Create the inventory stash
-    local stash = {
-        id = stashName,
-        label = 'Trap House',
-        slots = 2,
-        weight = 100000,
-    }
-     
-    AddEventHandler('onServerResourceStart', function(resourceName)
-        if resourceName == 'ox_inventory' or resourceName == GetCurrentResourceName() then
-            exports.ox_inventory:RegisterStash(stash.id, stash.label, stash.slots, stash.weight)
-        end
-    end)
+local function RegisterStash(stashName, slots)
+    local label = 'Trap House'
+    local weight = 100000
+    exports.ox_inventory:RegisterStash(stashName, label, slots, weight)
 end
+
+AddEventHandler('onServerResourceStart', function(resourceName)
+    if resourceName == 'ox_inventory' or resourceName == GetCurrentResourceName() then
+        for i, trapHouse in pairs(Config.TrapHouses) do
+            local stashName = trapHouse.inventory -- Generate a unique stash name for each trap house
+            RegisterStash(stashName, trapHouse.slots)
+        end
+    end
+end)
+
 
 local function ProcessTrapHouses()
     for i = 1, #Config.TrapHouses do

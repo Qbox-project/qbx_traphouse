@@ -46,6 +46,7 @@ Config.TrapHouses = {
         keyholders = {},
         pincode = 1234,
         inventory = "traphouse_1",
+        slots = 2,
         opened = false,
         takingover = false,
         money = 0,

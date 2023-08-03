@@ -255,7 +255,3 @@ QBCore.Commands.Add("multikeys", Lang:t("info.give_keys"), {{name = "id", help =
     end
 end)
 
-exports("AddHouseItem", AddHouseItem)
-exports("RemoveHouseItem", RemoveHouseItem)
-exports("GetInventoryData", GetInventoryData)
-exports("CanItemBeSaled", CanItemBeSaled)

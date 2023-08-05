@@ -22,21 +22,21 @@ local function RegisterTraphouseEntranceTarget(traphouseID, traphouseData)
     local coords = traphouseData.coords['enter']
     local boxName = 'traphouseEntrance' .. traphouseID
     local boxData = traphouseData.polyzoneBoxData['enter']
-    exports['qb-target']:AddBoxZone(boxName, coords, boxData.length, boxData.width, {
+    exports.ox_target:addBoxZone({
         name = boxName,
-        heading = boxData.heading,
-        debugPoly = boxData.debug,
-        minZ = boxData.minZ,
-        maxZ = boxData.maxZ,
-    }, {
+        coords = coords,
+        size = vec3(boxData.width, boxData.length, boxData.height),
+        rotation = boxData.heading,
+        debug = boxData.debug,
         options = {
-            {
+            {    icon = 'fa-solid fa-house',
                 type = 'client',
                 event = 'qb-traphouse:client:EnterTraphouse',
                 label = Lang:t('targetInfo.enter'),
+                distance = boxData.distance
             },
         },
-        distance = boxData.distance
+        
     })
 
     Config.TrapHouses[traphouseID].polyzoneBoxData['enter'].created = true
@@ -148,14 +148,16 @@ local function RegisterTraphouseInteractionTarget(traphouseID, traphouseData)
         end
     end
 
-    exports['qb-target']:AddBoxZone(boxName, coords, boxData.length, boxData.width, {
+    exports.ox_target:addBoxZone({
         name = boxName,
-        heading = boxData.heading,
-        debugPoly = boxData.debug,
-    }, {
+        coords = coords,
+        size = vec3(boxData.width, boxData.length, boxData.height),
+        rotation = boxData.heading,
+        debug = boxData.debug,
         options = options,
         distance = boxData.distance
     })
+
 
     boxData.created = true
 end
@@ -189,20 +191,21 @@ end
 local function RegisterTraphouseExitTarget(coords, traphouseID, traphouseData)
     local boxName = 'traphouseExit' .. traphouseID
     local boxData = traphouseData.polyzoneBoxData['exit']
-    exports['qb-target']:AddBoxZone(boxName, coords, boxData.length, boxData.width, {
+    exports.ox_target:addBoxZone({
         name = boxName,
-        heading = boxData.heading,
-        debugPoly = boxData.debug,
-    }, {
+        coords = coords,
+        size = vec3(boxData.width, boxData.length, boxData.height),
+        rotation = boxData.heading,
+        debug = boxData.debug,
         options = {
             {
                 type = "client",
                 event = "qb-traphouse:client:target:ExitTraphouse",
+                icon = 'fa-solid fa-house-circle-xmark',
                 label = Lang:t("targetInfo.leave"),
                 traphouseID = traphouseID,
-            },
-        },
-        distance = boxData.distance
+                distance = boxData.distance
+            },}
     })
 
     boxData.created = true

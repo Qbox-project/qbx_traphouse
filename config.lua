@@ -20,6 +20,7 @@ Config.TrapHouses = {
                 debug = false,
                 length = 1,
                 width = 1,
+                height = 1,
                 distance = 2.0,
                 created = false
             },
@@ -28,6 +29,7 @@ Config.TrapHouses = {
                 debug = false,
                 length = 1,
                 width = 1,
+                height = 1,
                 distance = 1.0,
                 created = false
             },
@@ -36,13 +38,15 @@ Config.TrapHouses = {
                 debug = false,
                 length = 1,
                 width = 1,
+                height = 1,
                 distance = 1.0,
                 created = false
             }
         },
         keyholders = {},
         pincode = 1234,
-        inventory = {},
+        inventory = "traphouse_1",
+        slots = 2,
         opened = false,
         takingover = false,
         money = 0,

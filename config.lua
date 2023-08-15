@@ -5,6 +5,7 @@ Config = Config or {}
 Config.UseTarget = GetConvar('UseTarget', 'false') == 'true'
 
 Config.MinZOffset = 40
+Config.Sellingtime = 10
 Config.TakeoverPrice = 5000
 Config.TrapHouses = {
     [1] = {

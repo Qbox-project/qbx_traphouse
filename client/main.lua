@@ -1,4 +1,4 @@
-local QBCore = exports['qbx-core']:GetCoreObject()
+
 local PlayerData = {}
 local ClosestTraphouse = nil
 local InsideTraphouse = false
@@ -57,9 +57,9 @@ local function RegisterTraphouseEntranceZone(traphouseID, traphouseData)
 
     zone:onPlayerInOut(function (isPointInside)
         if isPointInside then
-            exports['qbx-core']:DrawText('[E] ' .. Lang:t('targetInfo.enter'), 'left')
+            exports['qbx_core']:DrawText('[E] ' .. Lang:t('targetInfo.enter'), 'left')
         else
-            exports['qbx-core']:HideText()
+            exports['qbx_core']:HideText()
         end
 
         isInsideEntranceTarget = isPointInside
@@ -98,9 +98,9 @@ local function RegisterTraphouseInteractionZone(traphouseID, traphouseData)
 
     zone:onPlayerInOut(function (isPointInside)
         if isPointInside then
-            exports['qbx-core']:DrawText('[E] ' .. Lang:t('targetInfo.options'), 'left')
+            exports['qbx_core']:DrawText('[E] ' .. Lang:t('targetInfo.options'), 'left')
         else
-            exports['qbx-core']:HideText()
+            exports['qbx_core']:HideText()
             TriggerEvent('qb-traphouse:client:target:CloseMenu')
         end
 
@@ -176,9 +176,9 @@ local function RegisterTraphouseExitZone(coords, traphouseID, traphouseData)
 
     zone:onPlayerInOut(function (isPointInside)
         if isPointInside then
-            exports['qbx-core']:DrawText('[E] ' .. Lang:t("targetInfo.leave"), 'left')
+            exports['qbx_core']:DrawText('[E] ' .. Lang:t("targetInfo.leave"), 'left')
         else
-            exports['qbx-core']:HideText()
+            exports['qbx_core']:HideText()
         end
 
         isInsideExitTarget = isPointInside
@@ -326,7 +326,7 @@ local function LeaveTraphouse(k, data)
     TriggerServerEvent("InteractSound_SV:PlayOnSource", "houses_door_open", 0.25)
     DoScreenFadeOut(250)
     Wait(250)
-    exports['qbx-interior']:DespawnInterior(TraphouseObj, function()
+    exports['qbx_interior']:DespawnInterior(TraphouseObj, function()  --- name change update qbx-interior to qbx_interior
         TriggerEvent('qb-weathersync:client:EnableSync')
         DoScreenFadeIn(250)
         SetEntityCoords(ped, data.coords["enter"].x, data.coords["enter"].y, data.coords["enter"].z + 0.5)
@@ -370,7 +370,7 @@ end
 -- Events
 
 RegisterNetEvent('QBCore:Client:OnPlayerLoaded', function()
-    PlayerData = QBCore.Functions.GetPlayerData()
+    PlayerData = QBX.Functions.GetPlayerData()
 end)
 
 RegisterNetEvent('qb-traphouse:client:EnterTraphouse', function()
@@ -388,7 +388,7 @@ RegisterNetEvent('qb-traphouse:client:EnterTraphouse', function()
 end)
 
 RegisterNetEvent('qb-traphouse:client:TakeoverHouse', function(TraphouseId)
-    QBCore.Functions.Progressbar("takeover_traphouse", Lang:t("info.taking_over"), math.random(1000, 3000), false, true, {
+    QBX.Functions.Progressbar("takeover_traphouse", Lang:t("info.taking_over"), math.random(1000, 3000), false, true, {
         disableMovement = true,
         disableCarMovement = true,
         disableMouse = false,
@@ -396,7 +396,7 @@ RegisterNetEvent('qb-traphouse:client:TakeoverHouse', function(TraphouseId)
     }, {}, {}, {}, function() -- Done
         TriggerServerEvent('qb-traphouse:server:AddHouseKeyHolder', PlayerData.citizenid, TraphouseId, true)
     end, function()
-        QBCore.Functions.Notify(Lang:t("error.cancelled"), "error")
+        QBX.Functions.Notify(Lang:t("error.cancelled"), "error")
     end)
 end)
 
@@ -417,7 +417,7 @@ RegisterNetEvent('qb-traphouse:client:target:TakeMoney', function ()
 end)
 
 RegisterNetEvent('qb-traphouse:client:target:SeePinCode', function (data)
-    QBCore.Functions.Notify(Lang:t('info.pin_code', { value = data.traphouseData.pincode }))
+    QBX.Functions.Notify(Lang:t('info.pin_code', { value = data.traphouseData.pincode }))
 end)
 
 RegisterNetEvent('qb-traphouse:client:target:ExitTraphouse', function (data)
@@ -456,7 +456,7 @@ RegisterNUICallback('PinpadClose', function(_, cb)
 end)
 
 RegisterNUICallback('ErrorMessage', function(data, cb)
-    QBCore.Functions.Notify(data.message, 'error')
+    QBX.Functions.Notify(data.message, 'error')
     cb('ok')
 end)
 
@@ -465,7 +465,7 @@ RegisterNUICallback('EnterPincode', function(d, cb)
     if tonumber(d.pin) == data.pincode then
         EnterTraphouse(data)
     else
-        QBCore.Functions.Notify(Lang:t("error.incorrect_code"), 'error')
+        QBX.Functions.Notify(Lang:t("error.incorrect_code"), 'error')
     end
     cb('ok')
 end)
@@ -476,7 +476,7 @@ CreateThread(function()
     while true do
         local aiming, targetPed = GetEntityPlayerIsFreeAimingAt(PlayerId(-1))
         if targetPed ~= 0 and not IsPedAPlayer(targetPed) then
-            local ped = PlayerPedId()
+            local ped = cache.ped
             local pos = GetEntityCoords(ped)
             if ClosestTraphouse ~= nil then
                 local data = Config.TrapHouses[ClosestTraphouse]
@@ -554,8 +554,8 @@ CreateThread(function ()
 
     SetTraphouseEntranceTargets()
 
-    if QBCore.Functions.GetPlayerData() ~= nil then
-        PlayerData = QBCore.Functions.GetPlayerData()
+    if QBX.Functions.GetPlayerData() ~= nil then
+        PlayerData = QBX.Functions.GetPlayerData()
     end
 
     while true do
@@ -568,7 +568,7 @@ CreateThread(function ()
                     wait = 0
                     if IsControlJustPressed(0, 38) then
                         TriggerEvent("qb-traphouse:client:EnterTraphouse")
-                        exports['qbx-core']:HideText()
+                        exports['qbx_core']:HideText()
                     end
                 end
             else
@@ -594,7 +594,7 @@ CreateThread(function ()
                     wait = 0
                     if IsControlJustPressed(0, 38) then
                         LeaveTraphouse(ClosestTraphouse, data)
-                        exports['qbx-core']:HideText()
+                        exports['qbx_core']:HideText()
                     end
                 end
 
@@ -602,7 +602,7 @@ CreateThread(function ()
                     wait = 0
                     if IsControlJustPressed(0, 38) then
                         OpenHeaderMenu(data)
-                        exports['qbx-core']:HideText()
+                        exports['qbx_core']:HideText()
                     end
                 end
             end

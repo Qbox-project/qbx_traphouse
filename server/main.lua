@@ -1,4 +1,4 @@
-local QBCore = exports['qbx-core']:GetCoreObject()
+
 
 
 -- Functions
@@ -86,14 +86,14 @@ ProcessTrapHouses()
 
 RegisterServerEvent('qb-traphouse:server:TakeoverHouse', function(Traphouse)
     local src = source
-    local Player = QBCore.Functions.GetPlayer(src)
+    local Player = QBX.Functions.GetPlayer(src)
     local CitizenId = Player.PlayerData.citizenid
 
     if not HasCitizenIdHasKey(CitizenId, Traphouse) then
         if Player.Functions.RemoveMoney('cash', Config.TakeoverPrice) then
             TriggerClientEvent('qb-traphouse:client:TakeoverHouse', src, Traphouse)
         else
-            TriggerClientEvent('QBCore:Notify', src, Lang:t("error.not_enough"), 'error')
+            TriggerClientEvent('QBCore:Notify', src, Lang:t("error.not_enough"), 'error')   ----
         end
     end
 end)
@@ -134,7 +134,7 @@ end)
 
 RegisterServerEvent('qb-traphouse:server:TakeMoney', function(TraphouseId)
     local src = source
-    local Player = QBCore.Functions.GetPlayer(src)
+    local Player = QBX.Functions.GetPlayer(src)
     if Config.TrapHouses[TraphouseId].money ~= 0 then
         Player.Functions.AddMoney('cash', Config.TrapHouses[TraphouseId].money)
         Config.TrapHouses[TraphouseId].money = 0
@@ -146,7 +146,7 @@ end)
 
 RegisterServerEvent('qb-traphouse:server:RobNpc', function(Traphouse)
     local src = source
-    local Player = QBCore.Functions.GetPlayer(src)
+    local Player = QBX.Functions.GetPlayer(src)
     local Chance = math.random(1, 10)
     local odd = math.random(1, 10)
 
@@ -155,7 +155,7 @@ RegisterServerEvent('qb-traphouse:server:RobNpc', function(Traphouse)
             label = Lang:t('info.pincode', {value = Config.TrapHouses[Traphouse].pincode})
         }
         Player.Functions.AddItem("stickynote", 1, false, info)
-        TriggerClientEvent('inventory:client:ItemBox', src, QBCore.Shared.Items["stickynote"], "add")
+        TriggerClientEvent('inventory:client:ItemBox', src, QBX.Shared.Items["stickynote"], "add")
     else
         local amount = math.random(1, 80)
         Player.Functions.AddMoney('cash', amount)
@@ -166,9 +166,9 @@ end)
 
 QBCore.Commands.Add("multikeys", Lang:t("info.give_keys"), {{name = "id", help = "Player id"}}, true, function(source, args)
     local src = source
-    local Player = QBCore.Functions.GetPlayer(src)
+    local Player = QBX.Functions.GetPlayer(src)
     local TargetId = tonumber(args[1])
-    local TargetData = QBCore.Functions.GetPlayer(TargetId)
+    local TargetData = QBX.Functions.GetPlayer(TargetId)
     local IsOwner = false
     local Traphouse = HasTraphouseAndOwner(Player.PlayerData.citizenid)
 

@@ -1,7 +1,7 @@
 Config = Config or {}
 
 -- **** IMPORTANT ****
--- UseTarget should only be set to true when using qb-target
+-- UseTarget should only be set to true when using ox-target
 Config.UseTarget = GetConvar('UseTarget', 'false') == 'true'
 
 Config.MinZOffset = 40
@@ -12,6 +12,7 @@ Config.TrapHouses = {
         coords = {
             ["enter"] = vector3(-1202.21, -1308.48, 4.92),
             ["interaction"] = vector3(-1207.63, -1311.75, -32.65),
+            ["exit"] = vec3(-1202.07, -1312.24, -32.65)
         },
         polyzoneBoxData = {
             ["enter"] = {
@@ -40,7 +41,7 @@ Config.TrapHouses = {
                 length = 1,
                 width = 1,
                 height = 1,
-                distance = 1.0,
+                distance = 2.0,
                 created = false
             }
         },

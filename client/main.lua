@@ -1,5 +1,3 @@
-
-local PlayerData = {}
 local ClosestTraphouse = nil
 local InsideTraphouse = false
 local CurrentTraphouse = nil
@@ -19,9 +17,9 @@ local isInsideInteractionTarget = false
 -- Functions
 
 local function RegisterTraphouseEntranceTarget(traphouseID, traphouseData)
-    local coords = traphouseData.coords['enter']
+    local coords = traphouseData.coords.enter
     local boxName = 'traphouseEntrance' .. traphouseID
-    local boxData = traphouseData.polyzoneBoxData['enter']
+    local boxData = traphouseData.polyzoneBoxData.enter
     exports.ox_target:addBoxZone({
         name = boxName,
         coords = coords,
@@ -29,7 +27,8 @@ local function RegisterTraphouseEntranceTarget(traphouseID, traphouseData)
         rotation = boxData.heading,
         debug = boxData.debug,
         options = {
-            {    icon = 'fa-solid fa-house',
+            {
+                icon = 'fa-solid fa-house',
                 type = 'client',
                 event = 'qb-traphouse:client:EnterTraphouse',
                 label = Lang:t('targetInfo.enter'),
@@ -39,31 +38,28 @@ local function RegisterTraphouseEntranceTarget(traphouseID, traphouseData)
         
     })
 
-    Config.TrapHouses[traphouseID].polyzoneBoxData['enter'].created = true
+    Config.TrapHouses[traphouseID].polyzoneBoxData.enter.created = true
 end
 
 local function RegisterTraphouseEntranceZone(traphouseID, traphouseData)
-    local coords = traphouseData.coords['enter']
+    local coords = traphouseData.coords.enter
     local boxName = 'traphouseEntrance' .. traphouseID
-    local boxData = traphouseData.polyzoneBoxData['enter']
+    local boxData = traphouseData.polyzoneBoxData.enter
 
-    local zone = BoxZone:Create(coords, boxData.length, boxData.width, {
-        name = boxName,
-        heading = boxData.heading,
-        debugPoly = boxData.debug,
-        minZ = boxData.minZ,
-        maxZ = boxData.maxZ,
-    })
-
-    zone:onPlayerInOut(function (isPointInside)
-        if isPointInside then
-            exports['qbx_core']:DrawText('[E] ' .. Lang:t('targetInfo.enter'), 'left')
-        else
-            exports['qbx_core']:HideText()
+    local zone = lib.zones.box({
+        coords = coords,
+        size = vec3(boxData.length, boxData.width, boxData.height),
+        rotation = boxData.heading,
+        debug = boxData.debug,
+        onEnter = function()
+            isInsideEntranceTarget = true
+            lib.showTextUI('[E] ' .. Lang:t('targetInfo.enter'), {position = 'left-center'})
+        end,
+        onExit = function()
+            isInsideEntranceTarget = false
+            lib.hideTextUI()
         end
-
-        isInsideEntranceTarget = isPointInside
-    end)
+    })
 
     boxData.created = true
     boxData.zone = zone
@@ -72,7 +68,7 @@ end
 local function SetTraphouseEntranceTargets()
     if Config.TrapHouses and next(Config.TrapHouses) then
         for id, traphouse in pairs(Config.TrapHouses) do
-            if traphouse and traphouse.coords and traphouse.coords['enter'] then
+            if traphouse and traphouse.coords and traphouse.coords.enter then
                 if Config.UseTarget then
                     RegisterTraphouseEntranceTarget(id, traphouse)
                 else
@@ -84,42 +80,39 @@ local function SetTraphouseEntranceTargets()
 end
 
 local function RegisterTraphouseInteractionZone(traphouseID, traphouseData)
-    local coords = traphouseData.coords['interaction']
+    local coords = traphouseData.coords.interaction
     local boxName = 'traphouseInteraction' .. traphouseID
-    local boxData = traphouseData.polyzoneBoxData['interaction']
+    local boxData = traphouseData.polyzoneBoxData.interaction
 
-    local zone = BoxZone:Create(coords, boxData.length, boxData.width, {
-        name = boxName,
-        heading = boxData.heading,
-        debugPoly = boxData.debug,
-        minZ = coords.z - 1.0,
-        maxZ = coords.z + 1.0,
-    })
-
-    zone:onPlayerInOut(function (isPointInside)
-        if isPointInside then
-            exports['qbx_core']:DrawText('[E] ' .. Lang:t('targetInfo.options'), 'left')
-        else
-            exports['qbx_core']:HideText()
-            TriggerEvent('qb-traphouse:client:target:CloseMenu')
+    local zone = lib.zones.box({
+        coords = coords,
+        size = vec3(boxData.length, boxData.width, boxData.height),
+        rotation = boxData.heading,
+        debug = boxData.debug,
+        onEnter = function()
+            isInsideInteractionTarget = true
+            lib.showTextUI('[E] ' .. Lang:t('targetInfo.options'), {position = 'left-center'})
+        end,
+        onExit = function()
+            isInsideInteractionTarget = false
+            lib.hideTextUI()
         end
-
-        isInsideInteractionTarget = isPointInside
-    end)
+    })
 
     boxData.created = true
     boxData.zone = zone
 end
 
 local function RegisterTraphouseInteractionTarget(traphouseID, traphouseData)
-    local coords = traphouseData.coords['interaction']
+    local coords = traphouseData.coords.interaction
     local boxName = 'traphouseInteraction' .. traphouseID
-    local boxData = traphouseData.polyzoneBoxData['interaction']
+    local boxData = traphouseData.polyzoneBoxData.interaction
     
     local options = {
         {
             type = "client",
             event = "qb-traphouse:client:target:TakeOver",
+            icon = 'fas fa-skull',
             label = Lang:t("targetInfo.take_over"),
         },
     }
@@ -128,12 +121,14 @@ local function RegisterTraphouseInteractionTarget(traphouseID, traphouseData)
             {
                 type = "client",
                 event = "qb-traphouse:client:target:ViewInventory",
+                icon = 'fas fa-boxes-stacked',
                 label = Lang:t("targetInfo.inventory"),
                 traphouseData = traphouseData
             },
             {
                 type = "client",
                 event = "qb-traphouse:client:target:TakeMoney",
+                icon = 'fas fa-sack-dollar',
                 label = Lang:t('targetInfo.take_cash', {value = traphouseData.money}),
             },
         }
@@ -142,6 +137,7 @@ local function RegisterTraphouseInteractionTarget(traphouseID, traphouseData)
             options[#options+1] = {
                 type = "client",
                 event = "qb-traphouse:client:target:SeePinCode",
+                icon = 'fas fa-key',
                 label = Lang:t("targetInfo.pin_code_see"),
                 traphouseData = traphouseData
             }
@@ -163,26 +159,24 @@ local function RegisterTraphouseInteractionTarget(traphouseID, traphouseData)
 end
 
 local function RegisterTraphouseExitZone(coords, traphouseID, traphouseData)
+    local coords = traphouseData.coords.exit
     local boxName = 'traphouseExit' .. traphouseID
-    local boxData = traphouseData.polyzoneBoxData['exit']
+    local boxData = traphouseData.polyzoneBoxData.exit
 
-    local zone = BoxZone:Create(coords, boxData.length, boxData.width, {
-        name = boxName,
-        heading = boxData.heading,
-        debugPoly = boxData.debug,
-        minZ = coords.z - 1.0,
-        maxZ = coords.z + 1.0,
-    })
-
-    zone:onPlayerInOut(function (isPointInside)
-        if isPointInside then
-            exports['qbx_core']:DrawText('[E] ' .. Lang:t("targetInfo.leave"), 'left')
-        else
-            exports['qbx_core']:HideText()
+    local zone = lib.zones.box({
+        coords = coords,
+        size = vec3(boxData.length, boxData.width, boxData.height),
+        rotation = boxData.heading,
+        debug = boxData.debug,
+        onEnter = function()
+            isInsideExitTarget = true
+            lib.showTextUI('[E] ' .. Lang:t('targetInfo.leave'), {position = 'left-center'})
+        end,
+        onExit = function()
+            isInsideExitTarget = false
+            lib.hideTextUI()
         end
-
-        isInsideExitTarget = isPointInside
-    end)
+    })
 
     boxData.created = true
     boxData.zone = zone
@@ -190,7 +184,7 @@ end
 
 local function RegisterTraphouseExitTarget(coords, traphouseID, traphouseData)
     local boxName = 'traphouseExit' .. traphouseID
-    local boxData = traphouseData.polyzoneBoxData['exit']
+    local boxData = traphouseData.polyzoneBoxData.exit
     exports.ox_target:addBoxZone({
         name = boxName,
         coords = coords,
@@ -199,59 +193,64 @@ local function RegisterTraphouseExitTarget(coords, traphouseID, traphouseData)
         debug = boxData.debug,
         options = {
             {
-                type = "client",
-                event = "qb-traphouse:client:target:ExitTraphouse",
+                type = 'client',
+                event = 'qb-traphouse:client:target:ExitTraphouse',
                 icon = 'fa-solid fa-house-circle-xmark',
                 label = Lang:t("targetInfo.leave"),
                 traphouseID = traphouseID,
                 distance = boxData.distance
-            },}
+            }
+        }
     })
 
     boxData.created = true
 end
 
 local function OpenHeaderMenu(data)
+
+    local options = {
+        {
+            event = "qb-traphouse:client:target:TakeOver",
+            icon = 'fas fa-skull',
+            title = Lang:t("targetInfo.take_over"),
+            arrow = true
+        },
+    }
+    if IsKeyHolder then
+        options = {
+            {
+                event = "qb-traphouse:client:target:ViewInventory",
+                icon = 'fas fa-boxes-stacked',
+                title = Lang:t("targetInfo.inventory"),
+                arrow = true,
+                args = {
+                    traphouseData = data
+                }
+            },
+            {
+                event = "qb-traphouse:client:target:TakeMoney",
+                icon = 'fas fa-sack-dollar',
+                title = Lang:t('targetInfo.take_cash', {value = data.money}),
+                arrow = true
+            },
+        }
+
+        if IsHouseOwner then
+            options[#options+1] = {
+                event = "qb-traphouse:client:target:SeePinCode",
+                icon = 'fas fa-key',
+                title = Lang:t("targetInfo.pin_code_see"),
+                args = {
+                    traphouseData = data
+                }
+            }
+        end
+    end
     
     lib.registerContext({
         id = 'traphouse',
-        title = 'Options',  -- Derived from the first option's header value
-        options = {
-            {
-                title = Lang:t("targetInfo.inventory"),
-                icon = 'fa-boxes-stacked',
-                event = 'qb-traphouse:client:target:ViewInventory',
-                arrow = true,
-                args = {
-                    traphouseData = data
-          }},
-          {
-            title = Lang:t('targetInfo.take_cash', {value = data.money}),
-            icon = 'fa-sack-dollar',
-            event = 'qb-traphouse:client:target:TakeMoney',
-            arrow = true,
-            },
-            {
-                title = Lang:t("targetInfo.pin_code_see"),
-                icon = 'fa-key',
-                event = "qb-traphouse:client:target:SeePinCode",
-                arrow = true,
-                args = {
-                    traphouseData = data
-          }},
-            {
-            title = Lang:t("targetInfo.take_over"),
-            icon = 'fa-skull',
-            event = "qb-traphouse:client:target:TakeOver",
-            arrow = true,
-            },
-            {
-                title = Lang:t("targetInfo.close_menu"),
-                icon = 'fa-circle',
-                event = "qb-traphouse:client:target:CloseMenu",
-                arrow = false,
-                }
-        }
+        title = 'Options',
+        options = options
     })  
     lib.showContext("traphouse")
 
@@ -290,7 +289,7 @@ local function IsOwner(CitizenId)
 end
 
 local function SetClosestTraphouse()
-    local pos = GetEntityCoords(PlayerPedId(), true)
+    local pos = GetEntityCoords(cache.ped, true)
     local current = nil
     local dist = nil
     for id, _ in pairs(Config.TrapHouses) do
@@ -305,14 +304,14 @@ local function SetClosestTraphouse()
         end
     end
     ClosestTraphouse = current
-    IsKeyHolder = HasKey(PlayerData.citizenid)
-    IsHouseOwner = IsOwner(PlayerData.citizenid)
+    IsKeyHolder = HasKey(QBX.PlayerData.citizenid)
+    IsHouseOwner = IsOwner(QBX.PlayerData.citizenid)
 end
 
 local function EnterTraphouse(data)
-    local coords = { x = data.coords["enter"].x, y = data.coords["enter"].y, z= data.coords["enter"].z - Config.MinZOffset}
+    local coords = { x = data.coords.enter.x, y = data.coords.enter.y, z= data.coords.enter.z - Config.MinZOffset}
     TriggerServerEvent("InteractSound_SV:PlayOnSource", "houses_door_open", 0.25)
-    data = exports['qbx-interior']:CreateTrevorsShell(coords)
+    data = exports['qbx_interior']:CreateTrevorsShell(coords)
     TraphouseObj = data[1]
     POIOffsets = data[2]
     CurrentTraphouse = ClosestTraphouse
@@ -322,15 +321,14 @@ local function EnterTraphouse(data)
 end
 
 local function LeaveTraphouse(k, data)
-    local ped = PlayerPedId()
     TriggerServerEvent("InteractSound_SV:PlayOnSource", "houses_door_open", 0.25)
     DoScreenFadeOut(250)
     Wait(250)
-    exports['qbx_interior']:DespawnInterior(TraphouseObj, function()  --- name change update qbx-interior to qbx_interior
+    exports['qbx_interior']:DespawnInterior(TraphouseObj, function()
         TriggerEvent('qb-weathersync:client:EnableSync')
         DoScreenFadeIn(250)
-        SetEntityCoords(ped, data.coords["enter"].x, data.coords["enter"].y, data.coords["enter"].z + 0.5)
-        SetEntityHeading(ped, 107.71)
+        SetEntityCoords(cache.ped, data.coords.enter.x, data.coords.enter.y, data.coords.enter.z + 0.5)
+        SetEntityHeading(cache.ped, 107.71)
         TraphouseObj = nil
         POIOffsets = nil
         CurrentTraphouse = nil
@@ -338,22 +336,22 @@ local function LeaveTraphouse(k, data)
     end)
 
     if Config.UseTarget then
-        exports['qb-target']:RemoveZone('traphouseInteraction' .. k)
-        data.polyzoneBoxData['interaction'].created = false
+        exports.ox_target:removeZone('traphouseInteraction' .. k)
+        data.polyzoneBoxData.interaction.created = false
 
-        exports['qb-target']:RemoveZone('traphouseExit' .. k)
-        data.polyzoneBoxData['exit'].created = false
+        exports.ox_target:removeZone('traphouseExit' .. k)
+        data.polyzoneBoxData.exit.created = false
     else
-        if Config.TrapHouses[k] and Config.TrapHouses[k].polyzoneBoxData['interaction'] and Config.TrapHouses[k].polyzoneBoxData['interaction'].zone then
-            Config.TrapHouses[k].polyzoneBoxData['interaction'].zone:destroy()
-            Config.TrapHouses[k].polyzoneBoxData['interaction'].created = false
-            Config.TrapHouses[k].polyzoneBoxData['interaction'].zone = nil
+        if Config.TrapHouses[k] and Config.TrapHouses[k].polyzoneBoxData.interaction and Config.TrapHouses[k].polyzoneBoxData.interaction.zone then
+            Config.TrapHouses[k].polyzoneBoxData.interaction.zone:remove()
+            Config.TrapHouses[k].polyzoneBoxData.interaction.created = false
+            Config.TrapHouses[k].polyzoneBoxData.interaction.zone = nil
         end
 
-        if Config.TrapHouses[k] and Config.TrapHouses[k].polyzoneBoxData['exit'] and Config.TrapHouses[k].polyzoneBoxData['exit'].zone then
-            Config.TrapHouses[k].polyzoneBoxData['exit'].zone:destroy()
-            Config.TrapHouses[k].polyzoneBoxData['exit'].created = false
-            Config.TrapHouses[k].polyzoneBoxData['exit'].zone = nil
+        if Config.TrapHouses[k] and Config.TrapHouses[k].polyzoneBoxData.exit and Config.TrapHouses[k].polyzoneBoxData.exit.zone then
+            Config.TrapHouses[k].polyzoneBoxData.exit.zone:remove()
+            Config.TrapHouses[k].polyzoneBoxData.exit.created = false
+            Config.TrapHouses[k].polyzoneBoxData.exit.zone = nil
         end
 
         isInsideExitTarget = false
@@ -368,10 +366,6 @@ local function RobTimeout(timeout)
 end
 
 -- Events
-
-RegisterNetEvent('QBCore:Client:OnPlayerLoaded', function()
-    PlayerData = QBX.Functions.GetPlayerData()
-end)
 
 RegisterNetEvent('qb-traphouse:client:EnterTraphouse', function()
     if ClosestTraphouse ~= nil then
@@ -388,23 +382,28 @@ RegisterNetEvent('qb-traphouse:client:EnterTraphouse', function()
 end)
 
 RegisterNetEvent('qb-traphouse:client:TakeoverHouse', function(TraphouseId)
-    QBX.Functions.Progressbar("takeover_traphouse", Lang:t("info.taking_over"), math.random(1000, 3000), false, true, {
-        disableMovement = true,
-        disableCarMovement = true,
-        disableMouse = false,
-        disableCombat = true,
-    }, {}, {}, {}, function() -- Done
-        TriggerServerEvent('qb-traphouse:server:AddHouseKeyHolder', PlayerData.citizenid, TraphouseId, true)
-    end, function()
-        QBX.Functions.Notify(Lang:t("error.cancelled"), "error")
-    end)
+    if lib.progressBar({
+        duration = math.random(1000, 3000),
+        label = Lang:t("info.taking_over"),
+        useWhileDead = false,
+        canCancel = true,
+        disable = {
+            move = true,
+            car = true,
+            mouse = false,
+            combat = true
+        }
+    }) then -- if completed
+        TriggerServerEvent('qb-traphouse:server:AddHouseKeyHolder', QBX.PlayerData.citizenid, TraphouseId, true)
+    else -- if canceled
+        exports.qbx_core:Notify(Lang:t("error.cancelled"), "error")
+    end
 end)
 
 RegisterNetEvent('qb-traphouse:client:target:ViewInventory', function (data)
-    local TraphouseInventory = {}
-    TraphouseInventory.label = "traphouse_"..CurrentTraphouse
-    TraphouseInventory.items = data.traphouseData.inventory
-    TraphouseInventory.slots = 2
+    for i = 1, #Config.TrapHouses do
+        exports.ox_inventory:openInventory('stash', ('traphouse_%s'):format(i))
+    end
     TriggerServerEvent("inventory:server:OpenInventory", "traphouse", CurrentTraphouse, TraphouseInventory)
 end)
 
@@ -417,7 +416,7 @@ RegisterNetEvent('qb-traphouse:client:target:TakeMoney', function ()
 end)
 
 RegisterNetEvent('qb-traphouse:client:target:SeePinCode', function (data)
-    QBX.Functions.Notify(Lang:t('info.pin_code', { value = data.traphouseData.pincode }))
+    exports.qbx_core:Notify(Lang:t('info.pin_code', { value = data.traphouseData.pincode }))
 end)
 
 RegisterNetEvent('qb-traphouse:client:target:ExitTraphouse', function (data)
@@ -426,17 +425,26 @@ end)
 
 RegisterNetEvent('qb-traphouse:client:SyncData', function(k, data)
     Config.TrapHouses[k] = data
-    IsKeyHolder = HasKey(PlayerData.citizenid)
-    IsHouseOwner = IsOwner(PlayerData.citizenid)
+    IsKeyHolder = HasKey(QBX.PlayerData.citizenid)
+    IsHouseOwner = IsOwner(QBX.PlayerData.citizenid)
 
     if Config.UseTarget then
-        exports['qb-target']:RemoveZone('traphouseInteraction' .. k)
-        Config.TrapHouses[k].polyzoneBoxData['interaction'].created = false
+        exports.ox_target:removeZone('traphouseInteraction' .. k)
+        Config.TrapHouses[k].polyzoneBoxData.interaction.created = false
+
+        exports.ox_target:removeZone('traphouseExit' .. k)
+        data.polyzoneBoxData.exit.created = false
     else
-        if Config.TrapHouses[k] and Config.TrapHouses[k].polyzoneBoxData['interaction'] and Config.TrapHouses[k].polyzoneBoxData['interaction'].zone then
-            Config.TrapHouses[k].polyzoneBoxData['interaction'].zone:destroy()
-            Config.TrapHouses[k].polyzoneBoxData['interaction'].created = false
-            Config.TrapHouses[k].polyzoneBoxData['interaction'].zone = nil
+        if Config.TrapHouses[k] and Config.TrapHouses[k].polyzoneBoxData.interaction and Config.TrapHouses[k].polyzoneBoxData.interaction.zone then
+            Config.TrapHouses[k].polyzoneBoxData.interaction.zone:remove()
+            Config.TrapHouses[k].polyzoneBoxData.interaction.created = false
+            Config.TrapHouses[k].polyzoneBoxData.interaction.zone = nil
+        end
+
+        if Config.TrapHouses[k] and Config.TrapHouses[k].polyzoneBoxData.exit and Config.TrapHouses[k].polyzoneBoxData.exit.zone then
+            Config.TrapHouses[k].polyzoneBoxData.exit.zone:remove()
+            Config.TrapHouses[k].polyzoneBoxData.exit.created = false
+            Config.TrapHouses[k].polyzoneBoxData.exit.zone = nil
         end
 
         isInsideInteractionTarget = false
@@ -456,7 +464,7 @@ RegisterNUICallback('PinpadClose', function(_, cb)
 end)
 
 RegisterNUICallback('ErrorMessage', function(data, cb)
-    QBX.Functions.Notify(data.message, 'error')
+    exports.qbx_core:Notify(data.message, 'error')
     cb('ok')
 end)
 
@@ -465,7 +473,7 @@ RegisterNUICallback('EnterPincode', function(d, cb)
     if tonumber(d.pin) == data.pincode then
         EnterTraphouse(data)
     else
-        QBX.Functions.Notify(Lang:t("error.incorrect_code"), 'error')
+        exports.qbx_core:Notify(Lang:t("error.incorrect_code"), 'error')
     end
     cb('ok')
 end)
@@ -476,11 +484,10 @@ CreateThread(function()
     while true do
         local aiming, targetPed = GetEntityPlayerIsFreeAimingAt(PlayerId(-1))
         if targetPed ~= 0 and not IsPedAPlayer(targetPed) then
-            local ped = cache.ped
-            local pos = GetEntityCoords(ped)
+            local pos = GetEntityCoords(cache.ped)
             if ClosestTraphouse ~= nil then
                 local data = Config.TrapHouses[ClosestTraphouse]
-                local dist = #(pos - data.coords["enter"])
+                local dist = #(pos - data.coords.enter)
                 if dist < 200 then
                     if aiming then
                         local pcoords = GetEntityCoords(targetPed)
@@ -495,17 +502,13 @@ CreateThread(function()
                                 Wait(500)
                                 InDistance = true
 
-                                local dict = 'random@mugging3'
-                                RequestAnimDict(dict)
-                                while not HasAnimDictLoaded(dict) do
-                                    Wait(10)
-                                end
+                                lib.requestAnimDict('random@mugging3')
 
-                                SetEveryoneIgnorePlayer(PlayerId(), true)
+                                SetEveryoneIgnorePlayer(cache.playerId, true)
                                 TaskStandStill(targetPed, RobbingTime * 1000)
                                 FreezeEntityPosition(targetPed, true)
                                 SetBlockingOfNonTemporaryEvents(targetPed, true)
-                                TaskPlayAnim(targetPed, dict, 'handsup_standing_base', 2.0, -2, 15.0, 1, 0, 0, 0, 0)
+                                TaskPlayAnim(targetPed, 'random@mugging3', 'handsup_standing_base', 2.0, -2, 15.0, 1, 0, 0, 0, 0)
                                 for _ = 1, RobbingTime / 2, 1 do
                                     PlayPedAmbientSpeechNative(targetPed, "GUN_BEG", "SPEECH_PARAMS_FORCE_NORMAL_CLEAR")
                                     Wait(2000)
@@ -518,7 +521,7 @@ CreateThread(function()
                                     if not IsEntityDead(targetPed) then
                                         if CanRob then
                                             if InDistance then
-                                                SetEveryoneIgnorePlayer(PlayerId(), false)
+                                                SetEveryoneIgnorePlayer(cache.playerId, false)
                                                 SetBlockingOfNonTemporaryEvents(targetPed, false)
                                                 FreezeEntityPosition(targetPed, false)
                                                 ClearPedTasks(targetPed)
@@ -554,10 +557,6 @@ CreateThread(function ()
 
     SetTraphouseEntranceTargets()
 
-    if QBX.Functions.GetPlayerData() ~= nil then
-        PlayerData = QBX.Functions.GetPlayerData()
-    end
-
     while true do
         wait = 500
         SetClosestTraphouse()
@@ -568,13 +567,13 @@ CreateThread(function ()
                     wait = 0
                     if IsControlJustPressed(0, 38) then
                         TriggerEvent("qb-traphouse:client:EnterTraphouse")
-                        exports['qbx_core']:HideText()
+                        lib.hideTextUI()
                     end
                 end
             else
                 local data = Config.TrapHouses[ClosestTraphouse]
-                if not data.polyzoneBoxData['exit'].created then
-                    local exitCoords = vector3(data.coords["enter"].x + POIOffsets.exit.x, data.coords["enter"].y + POIOffsets.exit.y, data.coords["enter"].z - Config.MinZOffset + POIOffsets.exit.z)
+                if not data.polyzoneBoxData.exit.created then
+                    local exitCoords = vector3(data.coords.enter.x + POIOffsets.exit.x, data.coords.enter.y + POIOffsets.exit.y, data.coords.enter.z - Config.MinZOffset + POIOffsets.exit.z)
                     if Config.UseTarget then
                         RegisterTraphouseExitTarget(exitCoords, CurrentTraphouse, data)
                     else
@@ -582,7 +581,7 @@ CreateThread(function ()
                     end
                 end
 
-                if not data.polyzoneBoxData['interaction'].created then
+                if not data.polyzoneBoxData.interaction.created then
                     if Config.UseTarget then
                         RegisterTraphouseInteractionTarget(CurrentTraphouse, data)
                     else
@@ -594,7 +593,7 @@ CreateThread(function ()
                     wait = 0
                     if IsControlJustPressed(0, 38) then
                         LeaveTraphouse(ClosestTraphouse, data)
-                        exports['qbx_core']:HideText()
+                        lib.hideTextUI()
                     end
                 end
 
@@ -602,7 +601,7 @@ CreateThread(function ()
                     wait = 0
                     if IsControlJustPressed(0, 38) then
                         OpenHeaderMenu(data)
-                        exports['qbx_core']:HideText()
+                        lib.hideTextUI()
                     end
                 end
             end

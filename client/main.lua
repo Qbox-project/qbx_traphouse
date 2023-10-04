@@ -41,7 +41,7 @@ local function RegisterTraphouseEntranceTarget(traphouseID, traphouseData)
     Config.TrapHouses[traphouseID].polyzoneBoxData.enter.created = true
 end
 
-local function RegisterTraphouseEntranceZone(traphouseID, traphouseData)
+local function RegisterTraphouseEntranceZone(traphouseData)
     local coords = traphouseData.coords.enter
     local boxData = traphouseData.polyzoneBoxData.enter
 
@@ -71,14 +71,14 @@ local function SetTraphouseEntranceTargets()
                 if Config.UseTarget then
                     RegisterTraphouseEntranceTarget(id, traphouse)
                 else
-                    RegisterTraphouseEntranceZone(id, traphouse)
+                    RegisterTraphouseEntranceZone(traphouse)
                 end
             end
         end
     end
 end
 
-local function RegisterTraphouseInteractionZone(traphouseID, traphouseData)
+local function RegisterTraphouseInteractionZone(traphouseData)
     local coords = traphouseData.coords.interaction
     local boxData = traphouseData.polyzoneBoxData.interaction
 
@@ -155,7 +155,7 @@ local function RegisterTraphouseInteractionTarget(traphouseID, traphouseData)
     boxData.created = true
 end
 
-local function RegisterTraphouseExitZone(coords, traphouseID, traphouseData)
+local function RegisterTraphouseExitZone(coords, traphouseData)
     local boxData = traphouseData.polyzoneBoxData.exit
 
     local zone = lib.zones.box({
@@ -568,7 +568,7 @@ CreateThread(function ()
                     if Config.UseTarget then
                         RegisterTraphouseExitTarget(exitCoords, CurrentTraphouse, data)
                     else
-                        RegisterTraphouseExitZone(exitCoords, CurrentTraphouse, data)
+                        RegisterTraphouseExitZone(exitCoords, data)
                     end
                 end
 
@@ -576,7 +576,7 @@ CreateThread(function ()
                     if Config.UseTarget then
                         RegisterTraphouseInteractionTarget(CurrentTraphouse, data)
                     else
-                        RegisterTraphouseInteractionZone(CurrentTraphouse, data)
+                        RegisterTraphouseInteractionZone(data)
                     end
                 end
 

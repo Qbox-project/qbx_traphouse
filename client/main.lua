@@ -43,7 +43,6 @@ end
 
 local function RegisterTraphouseEntranceZone(traphouseID, traphouseData)
     local coords = traphouseData.coords.enter
-    local boxName = 'traphouseEntrance' .. traphouseID
     local boxData = traphouseData.polyzoneBoxData.enter
 
     local zone = lib.zones.box({
@@ -81,7 +80,6 @@ end
 
 local function RegisterTraphouseInteractionZone(traphouseID, traphouseData)
     local coords = traphouseData.coords.interaction
-    local boxName = 'traphouseInteraction' .. traphouseID
     local boxData = traphouseData.polyzoneBoxData.interaction
 
     local zone = lib.zones.box({
@@ -123,7 +121,6 @@ local function RegisterTraphouseInteractionTarget(traphouseID, traphouseData)
                 event = "qb-traphouse:client:target:ViewInventory",
                 icon = 'fas fa-boxes-stacked',
                 label = Lang:t("targetInfo.inventory"),
-                traphouseData = traphouseData
             },
             {
                 type = "client",
@@ -159,8 +156,6 @@ local function RegisterTraphouseInteractionTarget(traphouseID, traphouseData)
 end
 
 local function RegisterTraphouseExitZone(coords, traphouseID, traphouseData)
-    local coords = traphouseData.coords.exit
-    local boxName = 'traphouseExit' .. traphouseID
     local boxData = traphouseData.polyzoneBoxData.exit
 
     local zone = lib.zones.box({
@@ -223,9 +218,6 @@ local function OpenHeaderMenu(data)
                 icon = 'fas fa-boxes-stacked',
                 title = Lang:t("targetInfo.inventory"),
                 arrow = true,
-                args = {
-                    traphouseData = data
-                }
             },
             {
                 event = "qb-traphouse:client:target:TakeMoney",
@@ -251,7 +243,7 @@ local function OpenHeaderMenu(data)
         id = 'traphouse',
         title = 'Options',
         options = options
-    })  
+    })
     lib.showContext("traphouse")
 
 end
@@ -400,11 +392,10 @@ RegisterNetEvent('qb-traphouse:client:TakeoverHouse', function(TraphouseId)
     end
 end)
 
-RegisterNetEvent('qb-traphouse:client:target:ViewInventory', function (data)
+RegisterNetEvent('qb-traphouse:client:target:ViewInventory', function ()
     for i = 1, #Config.TrapHouses do
         exports.ox_inventory:openInventory('stash', ('traphouse_%s'):format(i))
     end
-    TriggerServerEvent("inventory:server:OpenInventory", "traphouse", CurrentTraphouse, TraphouseInventory)
 end)
 
 RegisterNetEvent('qb-traphouse:client:target:TakeOver', function ()

@@ -30,32 +30,10 @@ local function HasTraphouseAndOwner(CitizenId)
     return retval
 end
 
-local function HasTraphouseAndOwner(CitizenId)
-    local retval = nil
-    for Traphouse,_ in pairs(Config.TrapHouses) do
-        for _, v in pairs(Config.TrapHouses[Traphouse].keyholders) do
-            if v.citizenid == CitizenId then
-                if v.owner then
-                    retval = Traphouse
-                end
-            end
-        end
-    end
-    return retval
-end
-
---Creating stash for each traphouse 
-local function RegisterStash(stashName, slots)
-    local label = 'Trap House'
-    local weight = 100000
-    exports.ox_inventory:RegisterStash(stashName, label, slots, weight)
-end
-
 AddEventHandler('onServerResourceStart', function(resourceName)
     if resourceName == 'ox_inventory' or resourceName == GetCurrentResourceName() then
-        for i, trapHouse in pairs(Config.TrapHouses) do
-            local stashName = trapHouse.inventory -- Generate a unique stash name for each trap house
-            RegisterStash(stashName, trapHouse.slots)
+        for i = 1, #Config.TrapHouses do
+            exports.ox_inventory:RegisterStash(('traphouse_%s'):format(i), Config.TrapHouses[i].inventory, Config.TrapHouses[i].slots, 4000000, nil)
         end
     end
 end)
@@ -83,13 +61,6 @@ end
 ProcessTrapHouses()
 
 -- events
-
-AddEventHandler('onServerResourceStart', function(resource)
-    if resource ~= 'ox_inventory' then return end
-    for i = 1, #Config.TrapHouses do
-        exports.ox_inventory:RegisterStash(('traphouse_%s'):format(i), 'Traphouse', Config.TrapHouses[i].slots, 4000000, nil)
-    end
-end)
 
 RegisterServerEvent('qb-traphouse:server:TakeoverHouse', function(Traphouse)
     local src = source

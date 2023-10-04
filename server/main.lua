@@ -162,8 +162,7 @@ RegisterServerEvent('qb-traphouse:server:RobNpc', function(Traphouse)
             label = Lang:t('info.pincode', {value = Config.TrapHouses[Traphouse].pincode})
         }
         Player.Functions.AddItem("stickynote", 1, false, info)
-        -- exports.ox_inventory:AddItem(src, "stickynote", 1)
-        TriggerClientEvent('inventory:client:ItemBox', src, QBX.Shared.Items["stickynote"], "add")
+        TriggerClientEvent('inventory:client:ItemBox', src, exports.ox_inventory:Items()["stickynote"], "add")
     else
         local amount = math.random(1, 80)
         Player.Functions.AddMoney('cash', amount)

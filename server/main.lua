@@ -30,32 +30,10 @@ local function HasTraphouseAndOwner(CitizenId)
     return retval
 end
 
-local function HasTraphouseAndOwner(CitizenId)
-    local retval = nil
-    for Traphouse,_ in pairs(Config.TrapHouses) do
-        for _, v in pairs(Config.TrapHouses[Traphouse].keyholders) do
-            if v.citizenid == CitizenId then
-                if v.owner then
-                    retval = Traphouse
-                end
-            end
-        end
-    end
-    return retval
-end
-
---Creating stash for each traphouse 
-local function RegisterStash(stashName, slots)
-    local label = 'Trap House'
-    local weight = 100000
-    exports.ox_inventory:RegisterStash(stashName, label, slots, weight)
-end
-
 AddEventHandler('onServerResourceStart', function(resourceName)
     if resourceName == 'ox_inventory' or resourceName == GetCurrentResourceName() then
-        for i, trapHouse in pairs(Config.TrapHouses) do
-            local stashName = trapHouse.inventory -- Generate a unique stash name for each trap house
-            RegisterStash(stashName, trapHouse.slots)
+        for i = 1, #Config.TrapHouses do
+            exports.ox_inventory:RegisterStash(('traphouse_%s'):format(i), Config.TrapHouses[i].inventory, Config.TrapHouses[i].slots, 4000000, nil)
         end
     end
 end)
@@ -86,14 +64,14 @@ ProcessTrapHouses()
 
 RegisterServerEvent('qb-traphouse:server:TakeoverHouse', function(Traphouse)
     local src = source
-    local Player = QBX.Functions.GetPlayer(src)
+    local Player = exports.qbx_core:GetPlayer(src)
     local CitizenId = Player.PlayerData.citizenid
 
     if not HasCitizenIdHasKey(CitizenId, Traphouse) then
         if Player.Functions.RemoveMoney('cash', Config.TakeoverPrice) then
             TriggerClientEvent('qb-traphouse:client:TakeoverHouse', src, Traphouse)
         else
-            TriggerClientEvent('QBCore:Notify', src, Lang:t("error.not_enough"), 'error')   ----
+            exports.qbx_core:Notify(src, Lang:t("error.not_enough"), 'error')
         end
     end
 end)
@@ -124,29 +102,29 @@ RegisterServerEvent('qb-traphouse:server:AddHouseKeyHolder', function(CitizenId,
                     TriggerClientEvent('qb-traphouse:client:SyncData', -1, TraphouseId, Config.TrapHouses[TraphouseId])
                 end
             else
-                TriggerClientEvent('QBCore:Notify', src, Lang:t("error.no_slots"))
+                exports.qbx_core:Notify(src, Lang:t("error.no_slots"))
             end
         end
     else
-        TriggerClientEvent('QBCore:Notify', src, Lang:t("error.occured"))
+        exports.qbx_core:Notify(src, Lang:t("error.occured"))
     end
 end)
 
 RegisterServerEvent('qb-traphouse:server:TakeMoney', function(TraphouseId)
     local src = source
-    local Player = QBX.Functions.GetPlayer(src)
+    local Player = exports.qbx_core:GetPlayer(src)
     if Config.TrapHouses[TraphouseId].money ~= 0 then
         Player.Functions.AddMoney('cash', Config.TrapHouses[TraphouseId].money)
         Config.TrapHouses[TraphouseId].money = 0
         TriggerClientEvent('qb-traphouse:client:SyncData', -1, TraphouseId, Config.TrapHouses[TraphouseId])
     else
-        TriggerClientEvent('QBCore:Notify', src, Lang:t("error.no_money"), 'error')
+        exports.qbx_core:Notify(src, Lang:t("error.no_money"), 'error')
     end
 end)
 
 RegisterServerEvent('qb-traphouse:server:RobNpc', function(Traphouse)
     local src = source
-    local Player = QBX.Functions.GetPlayer(src)
+    local Player = exports.qbx_core:GetPlayer(src)
     local Chance = math.random(1, 10)
     local odd = math.random(1, 10)
 
@@ -155,7 +133,7 @@ RegisterServerEvent('qb-traphouse:server:RobNpc', function(Traphouse)
             label = Lang:t('info.pincode', {value = Config.TrapHouses[Traphouse].pincode})
         }
         Player.Functions.AddItem("stickynote", 1, false, info)
-        TriggerClientEvent('inventory:client:ItemBox', src, QBX.Shared.Items["stickynote"], "add")
+        TriggerClientEvent('inventory:client:ItemBox', src, exports.ox_inventory:Items()["stickynote"], "add")
     else
         local amount = math.random(1, 80)
         Player.Functions.AddMoney('cash', amount)
@@ -163,14 +141,14 @@ RegisterServerEvent('qb-traphouse:server:RobNpc', function(Traphouse)
 end)
 
 -- Commands
-
-QBCore.Commands.Add("multikeys", Lang:t("info.give_keys"), {{name = "id", help = "Player id"}}, true, function(source, args)
+lib.addCommand('multikeys', {help = Lang:t("info.give_keys"), params = {{name = 'id', type = 'playerId', help = 'Player Id'}}}, function(source, args)
     local src = source
-    local Player = QBX.Functions.GetPlayer(src)
-    local TargetId = tonumber(args[1])
-    local TargetData = QBX.Functions.GetPlayer(TargetId)
+    local Player = exports.qbx_core:GetPlayer(src)
+    local TargetData = exports.qbx_core:GetPlayer(args.id)
     local IsOwner = false
     local Traphouse = HasTraphouseAndOwner(Player.PlayerData.citizenid)
+
+    if not args.id then return end
 
     if TargetData ~= nil then
         if Traphouse ~= nil then
@@ -197,20 +175,19 @@ QBCore.Commands.Add("multikeys", Lang:t("info.give_keys"), {{name = "id", help =
                                 TriggerClientEvent('qb-traphouse:client:SyncData', -1, Traphouse, Config.TrapHouses[Traphouse])
                             end
                         else
-                            TriggerClientEvent('QBCore:Notify', src, Lang:t("error.no_slots"))
+                            exports.qbx_core:Notify(src, Lang:t("error.no_slots"))
                         end
                     end
                 else
-                    TriggerClientEvent('QBCore:Notify', src, Lang:t("error.occured"))
+                    exports.qbx_core:Notify(src, Lang:t("error.occured"))
                 end
             else
-                TriggerClientEvent('QBCore:Notify', src, Lang:t("error.have_keys"), 'error')
+                exports.qbx_core:Notify(src, Lang:t("error.have_keys"), 'error')
             end
         else
-            TriggerClientEvent('QBCore:Notify', src, Lang:t("error.not_owner"), 'error')
+            exports.qbx_core:Notify(src, Lang:t("error.not_owner"), 'error')
         end
     else
-        TriggerClientEvent('QBCore:Notify', src, Lang:t("error.not_online"), 'error')
+        exports.qbx_core:Notify(src, Lang:t("error.not_online"), 'error')
     end
 end)
-

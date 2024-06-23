@@ -493,13 +493,11 @@ CreateThread(function()
                                 Wait(500)
                                 InDistance = true
 
-                                lib.requestAnimDict('random@mugging3')
-
                                 SetEveryoneIgnorePlayer(cache.playerId, true)
                                 TaskStandStill(targetPed, RobbingTime * 1000)
                                 FreezeEntityPosition(targetPed, true)
                                 SetBlockingOfNonTemporaryEvents(targetPed, true)
-                                TaskPlayAnim(targetPed, 'random@mugging3', 'handsup_standing_base', 2.0, -2, 15.0, 1, 0, 0, 0, 0)
+                                lib.playAnim(targetPed, 'random@mugging3', 'handsup_standing_base', 2.0, -2, 15.0, 1, 0, 0, 0, 0)
                                 for _ = 1, RobbingTime / 2, 1 do
                                     PlayPedAmbientSpeechNative(targetPed, "GUN_BEG", "SPEECH_PARAMS_FORCE_NORMAL_CLEAR")
                                     Wait(2000)
